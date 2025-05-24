@@ -79,29 +79,253 @@ export default function ToolDetailPage() {
 
   const lessonPlanMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/ai/generate-lesson-plan", data);
+      const res = await apiRequest("POST", "/api/ai/generate-lesson-plan", {
+        topic: data.topic || data.content,
+        subject: data.subject,
+        gradeLevel: data.gradeLevel,
+        duration: 45,
+        learningStyle: "mixed",
+        includeVisuals: true
+      });
       return await res.json();
     },
     onSuccess: (data) => {
       setResult(data);
-      toast({ title: "Lesson plan generated successfully!" });
+      toast({ title: "Lesson plan generated successfully!", description: "Ready for your classroom!" });
     },
     onError: () => {
       toast({ title: "Failed to generate lesson plan", variant: "destructive" });
     }
   });
 
-  const chatMutation = useMutation({
+  // Teacher-specific tools
+  const teacherToolMutation = useMutation({
     mutationFn: async (data: any) => {
+      let specializedPrompt = data.content;
+      
+      switch (toolId) {
+        case 'grading-assistant':
+          specializedPrompt = `As a grading assistant, evaluate this student work: "${data.content}". Provide constructive feedback, identify strengths and areas for improvement, and suggest a grade with detailed reasoning. Be encouraging but honest.`;
+          break;
+        case 'worksheet-generator':
+          specializedPrompt = `Create a comprehensive worksheet for ${data.subject} at ${data.gradeLevel} level on the topic: ${data.content}. Include various question types, clear instructions, and an answer key.`;
+          break;
+        case 'progress-analyzer':
+          specializedPrompt = `Analyze this student progress data: ${data.content}. Identify patterns, strengths, weaknesses, and provide specific recommendations for improvement and next steps.`;
+          break;
+        case 'test-generator':
+          specializedPrompt = `Create a comprehensive test for ${data.subject} at ${data.gradeLevel} level covering: ${data.content}. Include multiple question types, clear rubrics, and varying difficulty levels.`;
+          break;
+        case 'essay-evaluator':
+          specializedPrompt = `Evaluate this essay: "${data.content}". Assess logic, grammar, coherence, argument structure, and provide detailed feedback with specific suggestions for improvement.`;
+          break;
+        case 'slide-builder':
+          specializedPrompt = `Create presentation slides for this lesson content: ${data.content}. Suggest slide titles, key points, visual elements, and interactive activities for ${data.gradeLevel} students.`;
+          break;
+        case 'class-summary':
+          specializedPrompt = `Write a comprehensive class summary for today's lesson on: ${data.content}. Include key concepts covered, student participation, learning objectives met, and homework assignments.`;
+          break;
+        case 'feedback-generator':
+          specializedPrompt = `Generate constructive feedback comments for report cards based on this student information: ${data.content}. Be specific, encouraging, and provide actionable suggestions for improvement.`;
+          break;
+        case 'research-assistant':
+          specializedPrompt = `Find and summarize recent educational research and resources related to: ${data.content}. Provide credible sources, key findings, and practical applications for teaching.`;
+          break;
+        default:
+          specializedPrompt = `As an educational professional, help with: ${data.content}`;
+      }
+
       const res = await apiRequest("POST", "/api/ai/chat", {
-        message: data.content,
-        context: { tool: toolId }
+        message: specializedPrompt,
+        context: { 
+          tool: toolId,
+          subject: data.subject,
+          gradeLevel: data.gradeLevel,
+          userRole: 'teacher'
+        }
       });
       return await res.json();
     },
     onSuccess: (data) => {
       setResult({ response: data.response });
-      toast({ title: "AI response generated!" });
+      toast({ title: "Professional content generated!", description: "Tailored for educators!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to generate content", variant: "destructive" });
+    }
+  });
+
+  // Admin-specific tools
+  const adminToolMutation = useMutation({
+    mutationFn: async (data: any) => {
+      let specializedPrompt = data.content;
+      
+      switch (toolId) {
+        case 'school-insights':
+          specializedPrompt = `Generate comprehensive school-wide insights from this data: ${data.content}. Provide trends, performance analysis, recommendations for improvement, and actionable strategies for administration.`;
+          break;
+        case 'teacher-activity':
+          specializedPrompt = `Analyze teacher activity and engagement data: ${data.content}. Identify top performers, areas needing support, and provide recommendations for professional development.`;
+          break;
+        case 'risk-predictor':
+          specializedPrompt = `Analyze student data to identify at-risk students: ${data.content}. Flag potential issues, suggest intervention strategies, and provide early warning indicators.`;
+          break;
+        case 'curriculum-scanner':
+          specializedPrompt = `Scan curriculum coverage data: ${data.content}. Identify gaps, overlaps, alignment issues, and suggest improvements to ensure comprehensive coverage.`;
+          break;
+        case 'intervention-suggestions':
+          specializedPrompt = `Based on this performance data: ${data.content}, suggest specific interventions and strategies to improve student outcomes. Include timelines and success metrics.`;
+          break;
+        case 'meeting-notes':
+          specializedPrompt = `Summarize these meeting points: ${data.content}. Create professional meeting notes with action items, decisions made, and follow-up requirements.`;
+          break;
+        case 'parent-communication':
+          specializedPrompt = `Create parent communication content about: ${data.content}. Make it clear, informative, and engaging for school newsletters and notices.`;
+          break;
+        case 'report-generator':
+          specializedPrompt = `Generate a comprehensive report on: ${data.content}. Include executive summary, detailed analysis, recommendations, and next steps formatted professionally.`;
+          break;
+        case 'policy-assistant':
+          specializedPrompt = `Draft a school policy regarding: ${data.content}. Include purpose, scope, procedures, responsibilities, and compliance requirements.`;
+          break;
+        case 'schedule-optimizer':
+          specializedPrompt = `Optimize school scheduling for: ${data.content}. Consider student needs, teacher availability, resource allocation, and suggest optimal time blocks.`;
+          break;
+        default:
+          specializedPrompt = `As a school administrator, help with: ${data.content}`;
+      }
+
+      const res = await apiRequest("POST", "/api/ai/chat", {
+        message: specializedPrompt,
+        context: { 
+          tool: toolId,
+          subject: data.subject,
+          gradeLevel: data.gradeLevel,
+          userRole: 'admin'
+        }
+      });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setResult({ response: data.response });
+      toast({ title: "Administrative content generated!", description: "Professional insights ready!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to generate content", variant: "destructive" });
+    }
+  });
+
+  // Parent-specific tools
+  const parentToolMutation = useMutation({
+    mutationFn: async (data: any) => {
+      let specializedPrompt = data.content;
+      
+      switch (toolId) {
+        case 'parent-summary':
+          specializedPrompt = `Explain in simple, parent-friendly terms how this child is doing: ${data.content}. Focus on progress, achievements, and areas where parents can help at home.`;
+          break;
+        case 'home-support':
+          specializedPrompt = `Provide specific, practical tips for parents to help their child with: ${data.content}. Include activities, resources, and strategies that work at home.`;
+          break;
+        case 'behavior-translator':
+          specializedPrompt = `Translate this school behavior report into plain English for parents: ${data.content}. Explain what it means and suggest positive next steps.`;
+          break;
+        case 'progress-qa':
+          specializedPrompt = `Answer this parent's question about their child's progress: ${data.content}. Be reassuring, informative, and provide actionable guidance.`;
+          break;
+        case 'lesson-playback':
+          specializedPrompt = `Summarize what was covered in class for a parent whose child missed this lesson: ${data.content}. Include key concepts and suggested review activities.`;
+          break;
+        default:
+          specializedPrompt = `Help this parent understand: ${data.content}`;
+      }
+
+      const res = await apiRequest("POST", "/api/ai/chat", {
+        message: specializedPrompt,
+        context: { 
+          tool: toolId,
+          subject: data.subject,
+          gradeLevel: data.gradeLevel,
+          userRole: 'parent'
+        }
+      });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setResult({ response: data.response });
+      toast({ title: "Parent-friendly content ready!", description: "Clear, helpful guidance provided!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to generate content", variant: "destructive" });
+    }
+  });
+
+  const chatMutation = useMutation({
+    mutationFn: async (data: any) => {
+      let specializedPrompt = data.content;
+      
+      // Customize prompts based on tool type
+      switch (toolId) {
+        case 'ai-study-buddy':
+          specializedPrompt = `As a friendly AI study buddy, help the student with: ${data.content}. Provide encouraging, clear explanations and ask follow-up questions to ensure understanding.`;
+          break;
+        case 'homework-assistant':
+          specializedPrompt = `As a homework assistant, guide the student through this problem step-by-step WITHOUT giving direct answers: ${data.content}. Ask leading questions and provide hints to help them discover the solution themselves.`;
+          break;
+        case 'concept-rewriter':
+          specializedPrompt = `Take this complex concept and explain it in much simpler terms that a ${gradeLevel || 'student'} can easily understand: ${data.content}. Use analogies, examples, and simple language.`;
+          break;
+        case 'voice-tutor':
+          specializedPrompt = `As a patient voice tutor, answer this student's question clearly and provide additional context for better understanding: ${data.content}`;
+          break;
+        case 'explain-text':
+          specializedPrompt = `Explain this text in simple, clear terms for a ${gradeLevel || 'student'}: ${data.content}. Break down any difficult concepts and provide context.`;
+          break;
+        case 'story-generator':
+          specializedPrompt = `Continue this story in an engaging, educational way suitable for students: "${data.content}". Make it creative but also incorporate learning elements.`;
+          break;
+        case 'poetry-maker':
+          specializedPrompt = `Create a beautiful poem based on these facts or feelings: ${data.content}. Make it educational and inspiring for students.`;
+          break;
+        case 'daily-plan':
+          specializedPrompt = `Create a personalized daily learning plan based on these subjects/topics: ${data.content}. Include study times, breaks, and specific activities for a ${gradeLevel || 'student'}.`;
+          break;
+        case 'ai-journal':
+          specializedPrompt = `Provide thoughtful reflection prompts and feedback for this journal entry: ${data.content}. Help the student think deeper about their learning experience.`;
+          break;
+        case 'speech-coach':
+          specializedPrompt = `As a speech coach, provide feedback and improvement tips for this speech content: ${data.content}. Focus on clarity, structure, and engagement techniques.`;
+          break;
+        case 'memory-booster':
+          specializedPrompt = `Create memory techniques and mnemonics to help remember this content: ${data.content}. Provide spaced repetition strategies and memory tips.`;
+          break;
+        case 'language-translator':
+          specializedPrompt = `Translate and simplify this content for easier understanding: ${data.content}. Provide the translation and then explain it in simple terms.`;
+          break;
+        case 'multilingual-assistant':
+          specializedPrompt = `Help with this multilingual learning request: ${data.content}. Provide translations, explanations, and cultural context as needed.`;
+          break;
+        case 'emoji-summarizer':
+          specializedPrompt = `Create a fun emoji-based summary of this lesson content for younger students: ${data.content}. Use emojis and simple language to make learning engaging.`;
+          break;
+        default:
+          specializedPrompt = `Help with this educational request: ${data.content}`;
+      }
+
+      const res = await apiRequest("POST", "/api/ai/chat", {
+        message: specializedPrompt,
+        context: { 
+          tool: toolId,
+          subject: data.subject,
+          gradeLevel: data.gradeLevel,
+          userRole: 'student'
+        }
+      });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setResult({ response: data.response });
+      toast({ title: "AI response generated!", description: "Personalized content ready!" });
     },
     onError: () => {
       toast({ title: "Failed to get AI response", variant: "destructive" });
@@ -122,6 +346,24 @@ export default function ToolDetailPage() {
       questionTypes: ["multiple-choice", "true-false"]
     };
 
+    // Student tools - specialized AI responses
+    const studentTools = ['ai-study-buddy', 'explain-text', 'homework-assistant', 'concept-rewriter', 
+                         'voice-tutor', 'story-generator', 'poetry-maker', 'daily-plan', 'ai-journal', 
+                         'speech-coach', 'memory-booster', 'language-translator', 'multilingual-assistant', 
+                         'emoji-summarizer'];
+
+    // Teacher tools - professional educational content
+    const teacherTools = ['grading-assistant', 'worksheet-generator', 'progress-analyzer', 'test-generator',
+                         'essay-evaluator', 'slide-builder', 'class-summary', 'feedback-generator', 'research-assistant'];
+
+    // Admin tools - administrative and management content
+    const adminTools = ['school-insights', 'teacher-activity', 'risk-predictor', 'curriculum-scanner',
+                       'intervention-suggestions', 'meeting-notes', 'parent-communication', 'report-generator',
+                       'policy-assistant', 'schedule-optimizer'];
+
+    // Parent tools - parent-friendly explanations
+    const parentTools = ['parent-summary', 'home-support', 'behavior-translator', 'progress-qa', 'lesson-playback'];
+
     switch (toolId) {
       case 'ai-flashcard-generator':
       case 'flashcard-generator':
@@ -136,14 +378,21 @@ export default function ToolDetailPage() {
       case 'lesson-plan-generator':
         lessonPlanMutation.mutate(data);
         break;
-      case 'ai-study-buddy':
-      case 'homework-assistant':
-      case 'concept-rewriter':
-      case 'voice-tutor':
-        chatMutation.mutate(data);
-        break;
       default:
-        toast({ title: "Tool functionality coming soon!", description: "This tool is being implemented." });
+        // Route to appropriate specialized mutation based on tool category
+        if (studentTools.includes(toolId)) {
+          chatMutation.mutate(data);
+        } else if (teacherTools.includes(toolId)) {
+          teacherToolMutation.mutate(data);
+        } else if (adminTools.includes(toolId)) {
+          adminToolMutation.mutate(data);
+        } else if (parentTools.includes(toolId)) {
+          parentToolMutation.mutate(data);
+        } else {
+          // Fallback to general chat for any unspecified tools
+          chatMutation.mutate(data);
+        }
+        break;
     }
   };
 
@@ -227,7 +476,8 @@ export default function ToolDetailPage() {
   const toolInfo = getToolInfo();
   const isLoading = flashcardMutation.isPending || quizMutation.isPending || 
                    summarizerMutation.isPending || lessonPlanMutation.isPending || 
-                   chatMutation.isPending;
+                   chatMutation.isPending || teacherToolMutation.isPending || 
+                   adminToolMutation.isPending || parentToolMutation.isPending;
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
