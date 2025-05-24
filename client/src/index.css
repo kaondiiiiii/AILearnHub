@@ -11,11 +11,11 @@
   --popover-foreground: 15 23 42; /* #0F172A */
   --card: 255 255 255; /* #FFFFFF */
   --card-foreground: 15 23 42; /* #0F172A */
-  --border: 226 232 240; /* #E2E8F0 */
+  --border: 30 58 138; /* #1E3A8A - Dark Blue */
   --input: 255 255 255; /* #FFFFFF */
-  --primary: 59 130 246; /* #3B82F6 - Light Blue */
+  --primary: 37 99 235; /* #2563EB - Strong Blue */
   --primary-foreground: 255 255 255; /* #FFFFFF */
-  --secondary: 99 179 237; /* #63B3ED - Lighter Blue */
+  --secondary: 59 130 246; /* #3B82F6 - Medium Blue */
   --secondary-foreground: 255 255 255; /* #FFFFFF */
   --accent: 129 140 248; /* #818CF8 - Light Purple-Blue */
   --accent-foreground: 255 255 255; /* #FFFFFF */
@@ -82,24 +82,129 @@
 @layer components {
   .flashcard {
     perspective: 1000px;
+    width: 100%;
+    height: 280px;
+    cursor: pointer;
   }
   
   .flashcard-inner {
-    transition: transform 0.6s;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform-style: preserve-3d;
   }
   
   .flashcard-front,
   .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
     backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(30, 58, 138, 0.15);
+    border: 2px solid rgb(30, 58, 138);
+  }
+  
+  .flashcard-front {
+    background: linear-gradient(135deg, rgb(59, 130, 246) 0%, rgb(37, 99, 235) 100%);
+    color: white;
   }
   
   .flashcard-back {
+    background: linear-gradient(135deg, rgb(16, 185, 129) 0%, rgb(5, 150, 105) 100%);
+    color: white;
     transform: rotateY(180deg);
   }
   
   .flashcard.flipped .flashcard-inner {
     transform: rotateY(180deg);
+  }
+  
+  .flashcard:hover .flashcard-inner {
+    transform: scale(1.02) rotateY(var(--rotation, 0deg));
+  }
+  
+  .flashcard.flipped:hover .flashcard-inner {
+    transform: scale(1.02) rotateY(180deg);
+  }
+
+  /* Kahoot-style quiz */
+  .quiz-option {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid rgb(30, 58, 138);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .quiz-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+  
+  .quiz-option:hover::before {
+    left: 100%;
+  }
+  
+  .quiz-option-a {
+    background: linear-gradient(135deg, rgb(239, 68, 68) 0%, rgb(220, 38, 38) 100%);
+    color: white;
+  }
+  
+  .quiz-option-b {
+    background: linear-gradient(135deg, rgb(59, 130, 246) 0%, rgb(37, 99, 235) 100%);
+    color: white;
+  }
+  
+  .quiz-option-c {
+    background: linear-gradient(135deg, rgb(245, 158, 11) 0%, rgb(217, 119, 6) 100%);
+    color: white;
+  }
+  
+  .quiz-option-d {
+    background: linear-gradient(135deg, rgb(16, 185, 129) 0%, rgb(5, 150, 105) 100%);
+    color: white;
+  }
+  
+  .quiz-option:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(30, 58, 138, 0.3);
+  }
+  
+  .quiz-option.selected {
+    transform: scale(0.98);
+    box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .quiz-option.correct {
+    animation: correctPulse 0.6s ease-in-out;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+  }
+  
+  .quiz-option.incorrect {
+    animation: incorrectShake 0.6s ease-in-out;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+  }
+  
+  @keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  @keyframes incorrectShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
   }
 
   /* Custom scrollbar */
