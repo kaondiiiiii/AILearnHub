@@ -179,6 +179,51 @@ export default function ToolDetailPage() {
   const [location, navigate] = useLocation();
   const toolId = new URLSearchParams(location.split('?')[1] || '').get('tool') || '';
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Role-based access validation
+  const validateToolAccess = (toolId: string, userRole: string) => {
+    const studentTools = ['ai-study-buddy', 'explain-text', 'homework-assistant', 'concept-rewriter', 
+                         'voice-tutor', 'story-generator', 'poetry-maker', 'daily-plan', 'ai-journal', 
+                         'speech-coach', 'memory-booster', 'language-translator', 'multilingual-assistant', 
+                         'emoji-summarizer', 'ai-flashcard-generator', 'flashcard-generator', 'quiz-generator', 'ai-summarizer'];
+    
+    const teacherTools = ['grading-assistant', 'worksheet-generator', 'progress-analyzer', 'test-generator',
+                         'essay-evaluator', 'slide-builder', 'class-summary', 'feedback-generator', 'research-assistant',
+                         'lesson-plan-generator', 'image-creator'];
+    
+    const adminTools = ['school-insights', 'teacher-activity', 'risk-predictor', 'curriculum-scanner',
+                       'intervention-suggestions', 'meeting-notes', 'parent-communication', 'report-generator',
+                       'policy-assistant', 'schedule-optimizer'];
+    
+    const parentTools = ['parent-summary', 'home-support', 'behavior-translator', 'progress-qa', 'lesson-playback'];
+    
+    if (userRole === 'admin') return true;
+    if (userRole === 'teacher' && (teacherTools.includes(toolId) || studentTools.includes(toolId))) return true;
+    if (userRole === 'student' && studentTools.includes(toolId)) return true;
+    if (userRole === 'parent' && parentTools.includes(toolId)) return true;
+    
+    return false;
+  };
+  
+  // Check access on component mount
+  if (!validateToolAccess(toolId, user?.role || 'student')) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Restricted</h2>
+          <p className="text-gray-600 mb-6">
+            This tool is not available for your user role. Please contact your administrator if you need access.
+          </p>
+          <Button onClick={() => navigate('/tools')} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Available Tools
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   // Form states
   const [content, setContent] = useState("");
@@ -423,28 +468,35 @@ export default function ToolDetailPage() {
     mutationFn: async (data: any) => {
       let specializedPrompt = data.content;
       
-      // Customize prompts based on tool type
+      // Add subject specialization and strict boundaries
+      const subjectConstraint = data.subject ? `You are specialized in ${data.subject} education. Only provide answers related to ${data.subject}. If the question is outside ${data.subject}, politely redirect to the subject.` : '';
+      const gradeConstraint = data.gradeLevel ? `Adapt your response for ${data.gradeLevel} level students.` : '';
+      
+      // Customize prompts based on tool type with strict specialization
       switch (toolId) {
         case 'ai-study-buddy':
-          specializedPrompt = `As a friendly AI study buddy, help the student with: ${data.content}. Provide encouraging, clear explanations and ask follow-up questions to ensure understanding.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a friendly AI study buddy specialized in ${data.subject || 'academics'}, help the student with this ${data.subject || 'academic'} question: ${data.content}. ONLY answer if this relates to ${data.subject || 'academics'}. If not, say "I can only help with ${data.subject || 'academic'} questions. Please ask about ${data.subject || 'your studies'}." Provide encouraging, clear explanations and ask follow-up questions to ensure understanding.`;
           break;
         case 'homework-assistant':
-          specializedPrompt = `As a homework assistant, guide the student through this problem step-by-step WITHOUT giving direct answers: ${data.content}. Ask leading questions and provide hints to help them discover the solution themselves.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a ${data.subject || 'academic'} homework assistant, guide the student through this ${data.subject || 'academic'} problem step-by-step WITHOUT giving direct answers: ${data.content}. ONLY help with ${data.subject || 'academic'} questions. If this isn't ${data.subject || 'academic'}-related, say "I specialize in ${data.subject || 'academic'} homework only." Ask leading questions and provide hints to help them discover the solution themselves.`;
           break;
         case 'concept-rewriter':
-          specializedPrompt = `Take this complex concept and explain it in much simpler terms that a ${gradeLevel || 'student'} can easily understand: ${data.content}. Use analogies, examples, and simple language.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a ${data.subject || 'academic'} concept simplifier, take this ${data.subject || 'academic'} concept and explain it in much simpler terms that a ${data.gradeLevel || 'student'} can easily understand: ${data.content}. ONLY work with ${data.subject || 'academic'} concepts. Use analogies, examples, and simple language appropriate for ${data.subject || 'academic'} learning.`;
           break;
         case 'voice-tutor':
-          specializedPrompt = `As a patient voice tutor, answer this student's question clearly and provide additional context for better understanding: ${data.content}`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a patient ${data.subject || 'academic'} voice tutor, answer this ${data.subject || 'academic'} question clearly: ${data.content}. ONLY answer ${data.subject || 'academic'} questions. If this isn't about ${data.subject || 'academics'}, redirect to ${data.subject || 'academic'} topics. Provide additional context for better understanding.`;
           break;
         case 'explain-text':
-          specializedPrompt = `Explain this text in simple, clear terms for a ${gradeLevel || 'student'}: ${data.content}. Break down any difficult concepts and provide context.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a ${data.subject || 'academic'} text explainer, explain this ${data.subject || 'academic'} text in simple, clear terms for a ${data.gradeLevel || 'student'}: ${data.content}. ONLY explain ${data.subject || 'academic'} content. Break down difficult ${data.subject || 'academic'} concepts and provide context.`;
           break;
         case 'story-generator':
-          specializedPrompt = `Continue this story in an engaging, educational way suitable for students: "${data.content}". Make it creative but also incorporate learning elements.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a ${data.subject || 'educational'} story generator, continue this ${data.subject || 'educational'} story in an engaging way: "${data.content}". ONLY create stories related to ${data.subject || 'educational'} topics. Make it creative but incorporate ${data.subject || 'educational'} learning elements appropriate for ${data.gradeLevel || 'students'}.`;
           break;
         case 'poetry-maker':
-          specializedPrompt = `Create a beautiful poem based on these facts or feelings: ${data.content}. Make it educational and inspiring for students.`;
+          specializedPrompt = `${subjectConstraint} ${gradeConstraint} As a ${data.subject || 'educational'} poetry creator, create a beautiful poem based on these ${data.subject || 'educational'} facts or concepts: ${data.content}. ONLY create poems about ${data.subject || 'educational'} topics. Make it educational and inspiring for ${data.gradeLevel || 'students'} studying ${data.subject || 'academics'}.`;
+          break;
+        case 'image-creator':
+          specializedPrompt = `As an educational image creator specialized in ${data.subject || 'academic'} content, I need to generate a ${data.subject || 'educational'} illustration for: ${data.content}. IMPORTANT: Only generate images that are directly related to ${data.subject || 'educational'} learning, appropriate for ${data.gradeLevel || 'students'}, and suitable for classroom use. The image should help students understand ${data.subject || 'academic'} concepts better.`;
           break;
         case 'daily-plan':
           specializedPrompt = `Create a personalized daily learning plan based on these subjects/topics: ${data.content}. Include study times, breaks, and specific activities for a ${gradeLevel || 'student'}.`;

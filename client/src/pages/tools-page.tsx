@@ -475,9 +475,17 @@ export default function ToolsPage() {
     const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          tool.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || tool.category === selectedCategory;
-    const matchesRole = tool.audience.includes(userRole);
     
-    return matchesSearch && matchesCategory && matchesRole;
+    // Strict role-based access control
+    const hasRoleAccess = () => {
+      if (userRole === "admin") return true; // Admins can access all tools
+      if (userRole === "teacher" && (tool.audience.includes("teacher") || tool.audience.includes("student"))) return true;
+      if (userRole === "student" && tool.audience.includes("student")) return true;
+      if (userRole === "parent" && tool.audience.includes("parent")) return true;
+      return false;
+    };
+    
+    return matchesSearch && matchesCategory && hasRoleAccess();
   });
 
   const featuredTools = filteredTools.filter(tool => tool.featured);
