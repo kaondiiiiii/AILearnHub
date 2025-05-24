@@ -10,7 +10,166 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Loader2, Mic, Volume2, Download, Copy } from "lucide-react";
+import { ArrowLeft, Loader2, Mic, Volume2, Download, Copy, RotateCcw } from "lucide-react";
+
+// Animated Flashcard Component
+function FlashcardComponent({ card, index }: { card: any; index: number }) {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  return (
+    <div 
+      className={`flashcard ${isFlipped ? 'flipped' : ''}`}
+      onClick={() => setIsFlipped(!isFlipped)}
+    >
+      <div className="flashcard-inner">
+        <div className="flashcard-front">
+          <div className="text-center">
+            <div className="text-sm font-bold mb-2 opacity-90">Question {index + 1}</div>
+            <div className="text-lg font-semibold leading-tight">{card.question}</div>
+            <div className="mt-4 text-sm opacity-75">Click to reveal answer</div>
+          </div>
+        </div>
+        <div className="flashcard-back">
+          <div className="text-center">
+            <div className="text-sm font-bold mb-2 opacity-90">Answer</div>
+            <div className="text-lg font-semibold leading-tight">{card.answer}</div>
+            <div className="mt-4">
+              <Badge className="bg-white/20 text-white border-white/30">
+                {card.difficulty || 'Medium'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Kahoot-style Quiz Component
+function KahootQuizComponent({ questions }: { questions: any[] }) {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [score, setScore] = useState(0);
+  const [quizComplete, setQuizComplete] = useState(false);
+
+  const handleAnswerSelect = (answer: string) => {
+    if (showAnswer) return;
+    setSelectedAnswer(answer);
+    setShowAnswer(true);
+    
+    setTimeout(() => {
+      if (answer === questions[currentQuestion].correctAnswer) {
+        setScore(score + 1);
+      }
+      
+      if (currentQuestion + 1 < questions.length) {
+        setCurrentQuestion(currentQuestion + 1);
+        setSelectedAnswer(null);
+        setShowAnswer(false);
+      } else {
+        setQuizComplete(true);
+      }
+    }, 2000);
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setShowAnswer(false);
+    setScore(0);
+    setQuizComplete(false);
+  };
+
+  if (quizComplete) {
+    return (
+      <div className="text-center p-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl text-white">
+        <div className="text-6xl mb-4">🎉</div>
+        <h2 className="text-3xl font-bold mb-2">Quiz Complete!</h2>
+        <div className="text-xl mb-4">Your Score: {score}/{questions.length}</div>
+        <div className="text-lg mb-6">
+          {score === questions.length ? "Perfect! Outstanding work! 🌟" :
+           score >= questions.length * 0.8 ? "Excellent job! 👏" :
+           score >= questions.length * 0.6 ? "Good work! Keep it up! 💪" :
+           "Keep practicing! You're learning! 📚"}
+        </div>
+        <Button onClick={resetQuiz} className="bg-white text-blue-600 hover:bg-gray-100">
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  const question = questions[currentQuestion];
+  const options = ['A', 'B', 'C', 'D'];
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="text-lg font-semibold text-gray-600 mb-2">
+          Question {currentQuestion + 1} of {questions.length}
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
+          <div 
+            className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl border-3 border-blue-800 shadow-lg">
+        <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">
+          {question.question}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {question.options?.map((option: string, index: number) => {
+            const optionLetter = options[index];
+            const isCorrect = option === question.correctAnswer;
+            const isSelected = selectedAnswer === option;
+            
+            let optionClass = `quiz-option quiz-option-${optionLetter.toLowerCase()} p-6 rounded-xl text-center font-bold text-lg cursor-pointer`;
+            
+            if (showAnswer) {
+              if (isCorrect) {
+                optionClass += ' correct';
+              } else if (isSelected && !isCorrect) {
+                optionClass += ' incorrect';
+              }
+            } else if (isSelected) {
+              optionClass += ' selected';
+            }
+
+            return (
+              <div
+                key={index}
+                className={optionClass}
+                onClick={() => handleAnswerSelect(option)}
+              >
+                <div className="font-black text-2xl mb-2">{optionLetter}</div>
+                <div>{option}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {showAnswer && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+            <div className="text-center">
+              <div className="font-semibold text-gray-700 mb-2">Explanation:</div>
+              <div className="text-gray-600">{question.explanation}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="text-center text-gray-600">
+        Score: {score}/{currentQuestion + (showAnswer ? 1 : 0)}
+      </div>
+    </div>
+  );
+}
 
 interface ToolDetailPageProps {
   toolId: string;
@@ -602,35 +761,21 @@ export default function ToolDetailPage() {
               <div className="space-y-4">
                 {/* Flashcards Results */}
                 {result.flashcards && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-900">Generated Flashcards</h3>
-                    {result.flashcards.map((card: any, index: number) => (
-                      <div key={index} className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                        <div className="font-medium text-blue-900 mb-2">Q: {card.question}</div>
-                        <div className="text-gray-700">A: {card.answer}</div>
-                        <Badge className="mt-2 bg-blue-100 text-blue-800">{card.difficulty}</Badge>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 text-xl">🎯 Your AI-Generated Flashcards</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {result.flashcards.map((card: any, index: number) => (
+                        <FlashcardComponent key={index} card={card} index={index} />
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* Quiz Results */}
                 {result.questions && (
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-gray-900">Generated Quiz</h3>
-                    {result.questions.map((question: any, index: number) => (
-                      <div key={index} className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                        <div className="font-medium text-blue-900 mb-2">{index + 1}. {question.question}</div>
-                        {question.options && (
-                          <div className="ml-4 space-y-1 text-gray-700">
-                            {question.options.map((option: string, i: number) => (
-                              <div key={i}>• {option}</div>
-                            ))}
-                          </div>
-                        )}
-                        <div className="mt-2 text-green-700 font-medium">Answer: {question.correctAnswer}</div>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 text-xl">🎮 Interactive Kahoot-Style Quiz</h3>
+                    <KahootQuizComponent questions={result.questions} />
                   </div>
                 )}
 
