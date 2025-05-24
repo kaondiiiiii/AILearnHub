@@ -74,6 +74,13 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     roles: ['student', 'teacher']
   },
   {
+    id: 'tools',
+    label: 'AI Tools',
+    href: '/tools',
+    icon: 'fas fa-magic',
+    roles: ['student', 'teacher', 'parent', 'admin']
+  },
+  {
     id: 'analytics',
     label: 'Analytics',
     href: '/analytics',

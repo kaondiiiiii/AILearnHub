@@ -1,0 +1,56 @@
+📚 Learning & Tutoring (Student Tools)
+AI Study Buddy – Chat-style learning assistant
+Explain This Text – Highlight any content → AI explains it
+AI Flashcard Generator – Creates Q&A cards from notes
+Quiz Generator – Creates MCQs, True/False, Matching
+AI Summarizer – Summarizes books, lessons, or articles
+Concept Rewriter – Explains concepts in simpler words
+Homework Assistant – Step-by-step guidance without giving direct answers
+AI Mind Map Builder – Generates visual mind maps from topics
+Language Translator + Simplifier – Translate & simplify into native language
+Voice Tutor – Ask questions by voice, get AI answers
+Daily Learning Plan – Personalized schedule with reminders
+AI Journal Reflections – Reflective writing prompts & feedback
+Memory Booster – Smart spaced repetition based on flashcard accuracy
+Speech Practice Coach – Records student voice, gives feedback
+AI Exam Trainer – Simulates exam-style practice questions
+🧑‍🏫 Teacher Productivity Tools
+Lesson Plan Generator – Creates full lessons from objectives
+Worksheet Generator – Printable and digital worksheet creation
+Grading Assistant – AI grades open text, gives feedback
+Student Progress Analyzer – Summarizes student strengths & weaknesses
+Test Generator – Builds quizzes by topic & difficulty
+Essay Evaluator – Evaluates logic, grammar, and coherence
+Slide Builder Assistant – Suggests slides from lesson content
+Class Summary Writer – Auto-writes what was covered in class
+Feedback Generator – Creates report card and parent comments
+AI Research Assistant – Finds recent articles or sources for projects
+📊 Principal & Admin Tools
+School-wide Insights Generator – Auto-summary of academic data
+Teacher Activity Reporter – Tracks lessons created & engagement
+Student Risk Predictor – Flags students falling behind
+Curriculum Coverage Scanner – Detects gaps in content coverage
+AI Suggests Interventions – “Grade 6 math is declining. Try…”
+Meeting Note AI – Records + summarizes school meetings
+Parent Communication Writer – Auto-generates newsletters & notices
+Report Generator – Export reports as PDF from data
+Policy Draft Assistant – Drafts school policies or proposals
+AI Schedule Optimizer – Suggests best subject time blocks
+👪 Parent-Facing Tools
+Parent Summary Bot – “How is my child doing?” in plain English
+Home Support Tips – AI suggests ways to help with specific topics
+Behavior Translator – Explains school behavior reports simply
+AI Progress Q&A – Parents can ask any question about progress
+Lesson Playback Summarizer – Parent can see a summary of missed class
+🎨 Creativity & Expression
+Story Generator – Students write a sentence, AI completes it
+Image Creator – AI generates illustrations for student projects
+AI Poetry Maker – Converts facts or feelings into poems
+Comic Strip Writer – Creates dialogues & scenes
+Presentation Builder – AI helps organize speeches & slides
+🗣️ Communication & Accessibility
+Voice-to-Text Transcriber – Converts voice to editable text (Whisper)
+Text-to-Voice Explainer – AI reads content aloud when asked
+Multilingual Assistant – Interacts in different languages with auto-translate
+Chat-to-Lesson Transformer – Turn any conversation into a lesson
+Emoji Lesson Summarizer – Fun emoji-based summary of lessons for younger students
