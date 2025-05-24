@@ -1,0 +1,97 @@
+All Tools
+AI Study Buddy
+Learning & Tutoring
+Chat-style learning assistant for personalized help
+Open
+Explain This Text
+Learning & Tutoring
+Highlight any content and AI explains it simply
+Open
+AI Flashcard Generator
+Learning & Tutoring
+Creates Q&A cards from your notes automatically
+Open
+Quiz Generator
+Learning & Tutoring
+Creates MCQs, True/False, and Matching questions
+Open
+AI Summarizer
+Learning & Tutoring
+Summarizes books, lessons, or articles instantly
+Open
+Concept Rewriter
+Learning & Tutoring
+Explains complex concepts in simpler words
+Open
+Homework Assistant
+Learning & Tutoring
+Step-by-step guidance without giving direct answers
+Open
+AI Mind Map Builder
+Learning & Tutoring
+Generates visual mind maps from any topic
+Open
+Language Translator + Simplifier
+Learning & Tutoring
+Translate & simplify into your native language
+Open
+Voice Tutor
+Learning & Tutoring
+Ask questions by voice, get AI answers
+Open
+Daily Learning Plan
+Learning & Tutoring
+Personalized schedule with smart reminders
+Open
+AI Journal Reflections
+Learning & Tutoring
+Reflective writing prompts with feedback
+Open
+Memory Booster
+Learning & Tutoring
+Smart spaced repetition based on your accuracy
+Open
+Speech Practice Coach
+Learning & Tutoring
+Records your voice and gives pronunciation feedback
+Open
+AI Exam Trainer
+Learning & Tutoring
+Simulates realistic exam-style practice questions
+Open
+Story Generator
+Creativity & Expression
+Students write a sentence, AI completes the story
+Open
+Image Creator
+Creativity & Expression
+AI generates illustrations for student projects
+Open
+AI Poetry Maker
+Creativity & Expression
+Converts facts or feelings into beautiful poems
+Open
+Comic Strip Writer
+Creativity & Expression
+Creates dialogues & scenes for comic strips
+Open
+Presentation Builder
+Creativity & Expression
+AI helps organize speeches & slide presentations
+Open
+Voice-to-Text Transcriber
+Communication & Accessibility
+Converts voice to editable text using Whisper
+Open
+Text-to-Voice Explainer
+Communication & Accessibility
+AI reads content aloud when requested
+Open
+Multilingual Assistant
+Communication & Accessibility
+Interacts in different languages with auto-translate
+Open
+Emoji Lesson Summarizer
+Communication & Accessibility
+Fun emoji-based summary for younger students
+Open
