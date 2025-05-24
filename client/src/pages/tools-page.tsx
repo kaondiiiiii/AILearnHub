@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -462,6 +463,7 @@ const tools: Tool[] = [
 
 export default function ToolsPage() {
   const { user } = useAuth();
+  const [location, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -546,7 +548,11 @@ export default function ToolsPage() {
                   <CardDescription className="text-sm mb-4">
                     {tool.description}
                   </CardDescription>
-                  <Button className="w-full" size="sm">
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+                    size="sm"
+                    onClick={() => navigate(`/tool?tool=${tool.id}`)}
+                  >
                     Launch Tool
                   </Button>
                 </CardContent>
@@ -579,8 +585,13 @@ export default function ToolsPage() {
                 <CardDescription className="text-sm mb-3 line-clamp-2">
                   {tool.description}
                 </CardDescription>
-                <Button variant="outline" className="w-full" size="sm">
-                  Open
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50" 
+                  size="sm"
+                  onClick={() => navigate(`/tool?tool=${tool.id}`)}
+                >
+                  Open Tool
                 </Button>
               </CardContent>
             </Card>

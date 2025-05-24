@@ -14,6 +14,7 @@ import AiTutorPage from "@/pages/ai-tutor-page";
 import AnalyticsPage from "@/pages/analytics-page";
 import MindMapPage from "@/pages/mind-map-page";
 import ToolsPage from "@/pages/tools-page";
+import ToolDetailPage from "@/pages/tool-detail-page";
 import NotFound from "@/pages/not-found";
 import TextExplainer from "@/components/ai/text-explainer";
 
@@ -28,6 +29,7 @@ function Router() {
       <ProtectedRoute path="/analytics" component={AnalyticsPage} />
       <ProtectedRoute path="/mind-map" component={MindMapPage} />
       <ProtectedRoute path="/tools" component={ToolsPage} />
+      <ProtectedRoute path="/tool" component={ToolDetailPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
