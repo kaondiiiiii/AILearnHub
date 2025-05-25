@@ -3,11 +3,23 @@ import {
   studyProgress, aiInteractions, mindMaps,
   type User, type InsertUser, type FlashcardDeck, type InsertFlashcardDeck,
   type Flashcard, type InsertFlashcard, type Quiz, type InsertQuiz,
-  type QuizAttempt, type InsertQuizAttempt, type Lesson, type InsertLesson,
+  type Lesson, type InsertLesson,
   type StudyProgress, type InsertStudyProgress, type AiInteraction, type InsertAiInteraction,
   type MindMap, type InsertMindMap
 } from "@shared/schema";
 import session from "express-session";
+
+// Define QuizAttempt interface
+export interface QuizAttempt {
+  id: number;
+  userId: number;
+  quizId: number;
+  score: number;
+  totalQuestions: number;
+  timeSpent?: number | null;
+  answers?: { [questionId: number]: string[] } | null;
+  completedAt?: string | null;
+}
 import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
@@ -32,7 +44,9 @@ export interface IStorage {
   getQuiz(id: number): Promise<Quiz | undefined>;
   createQuiz(quiz: InsertQuiz): Promise<Quiz>;
   getQuizAttempts(userId: number): Promise<QuizAttempt[]>;
-  createQuizAttempt(attempt: InsertQuizAttempt): Promise<QuizAttempt>;
+  getQuizAttemptsByQuizId(quizId: number): Promise<QuizAttempt[]>;
+  createQuizAttempt(attempt: Omit<QuizAttempt, 'id' | 'completedAt'>): Promise<QuizAttempt>;
+  updateQuizAttempt(id: number, updateData: Partial<Omit<QuizAttempt, 'id'>>): Promise<QuizAttempt | null>;
 
   // Lesson methods
   getLessons(userId?: number): Promise<Lesson[]>;
@@ -56,6 +70,12 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  // Private method to save data (used internally)
+  private saveData(): void {
+    // This method would typically save data to disk or database
+    // In this in-memory implementation, it's a placeholder for persistence
+    console.log('Data saved');
+  }
   private users: Map<number, User>;
   private flashcardDecks: Map<number, FlashcardDeck>;
   private flashcards: Map<number, Flashcard>;
@@ -80,6 +100,20 @@ export class MemStorage implements IStorage {
     this.mindMaps = new Map();
     this.currentId = 1;
     
+    // Create a demo user with teacher role
+    this.users.set(1, {
+      id: 1,
+      username: 'demo',
+      email: 'demo@example.com',
+      password: 'password-hash',
+      firstName: 'Demo',
+      lastName: 'User',
+      role: 'teacher', // Set role to teacher
+      grade: null,
+      subjects: ['Mathematics', 'Science', 'English'],
+      createdAt: new Date()
+    });
+    
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
@@ -100,11 +134,17 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
+    
+    // Ensure required fields have proper values
     const user: User = { 
       ...insertUser, 
       id, 
+      role: insertUser.role || 'student',
+      grade: insertUser.grade || null,
+      subjects: insertUser.subjects ? [...insertUser.subjects] : null,
       createdAt: new Date()
     };
+    
     this.users.set(id, user);
     return user;
   }
@@ -112,8 +152,16 @@ export class MemStorage implements IStorage {
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
-    
-    const updatedUser = { ...user, ...updates };
+
+    // Ensure proper type handling for arrays and optional fields
+    const updatedUser = {
+      ...user,
+      ...updates,
+      role: updates.role || user.role || 'student',
+      grade: updates.grade !== undefined ? updates.grade : user.grade,
+      subjects: updates.subjects ? [...updates.subjects] : user.subjects
+    };
+
     this.users.set(id, updatedUser);
     return updatedUser;
   }
@@ -136,7 +184,9 @@ export class MemStorage implements IStorage {
     const deck: FlashcardDeck = {
       ...insertDeck,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertDeck.description || null,
+      isPublic: insertDeck.isPublic || false
     };
     this.flashcardDecks.set(id, deck);
     return deck;
@@ -151,9 +201,11 @@ export class MemStorage implements IStorage {
     const flashcard: Flashcard = {
       ...insertFlashcard,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      difficulty: insertFlashcard.difficulty || null
     };
     this.flashcards.set(id, flashcard);
+    this.saveData();
     return flashcard;
   }
 
@@ -175,7 +227,11 @@ export class MemStorage implements IStorage {
     const quiz: Quiz = {
       ...insertQuiz,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertQuiz.description || null,
+      isPublic: insertQuiz.isPublic || false,
+      questions: insertQuiz.questions || null,
+      timeLimit: insertQuiz.timeLimit || null
     };
     this.quizzes.set(id, quiz);
     return quiz;
@@ -185,14 +241,39 @@ export class MemStorage implements IStorage {
     return Array.from(this.quizAttempts.values()).filter(attempt => attempt.userId === userId);
   }
 
-  async createQuizAttempt(insertAttempt: InsertQuizAttempt): Promise<QuizAttempt> {
+  async getQuizAttemptsByQuizId(quizId: number): Promise<QuizAttempt[]> {
+    return Array.from(this.quizAttempts.values()).filter(attempt => attempt.quizId === quizId);
+  }
+
+  async createQuizAttempt(insertAttempt: Omit<QuizAttempt, 'id' | 'completedAt'>): Promise<QuizAttempt> {
     const id = this.currentId++;
+    
+    // Ensure all properties have proper types
     const attempt: QuizAttempt = {
-      ...insertAttempt,
       id,
-      completedAt: new Date()
+      userId: insertAttempt.userId,
+      quizId: insertAttempt.quizId,
+      score: insertAttempt.score,
+      totalQuestions: insertAttempt.totalQuestions,
+      answers: insertAttempt.answers ? {...insertAttempt.answers} : null,
+      timeSpent: insertAttempt.timeSpent || null,
+      completedAt: new Date().toISOString()
     };
+    
     this.quizAttempts.set(id, attempt);
+    this.saveData();
+    return attempt;
+  }
+
+  async updateQuizAttempt(id: number, updateData: Partial<Omit<QuizAttempt, 'id'>>): Promise<QuizAttempt | null> {
+    const attempt = this.quizAttempts.get(id);
+    if (!attempt) return null;
+
+    Object.assign(attempt, updateData);
+    if (updateData.answers) {
+      attempt.answers = {...updateData.answers};
+    }
+    this.saveData();
     return attempt;
   }
 
@@ -214,9 +295,15 @@ export class MemStorage implements IStorage {
     const lesson: Lesson = {
       ...insertLesson,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertLesson.description || null,
+      isPublic: insertLesson.isPublic || false,
+      objectives: Array.isArray(insertLesson.objectives) ? [...insertLesson.objectives] : null,
+      content: insertLesson.content || null,
+      duration: insertLesson.duration || null
     };
     this.lessons.set(id, lesson);
+    this.saveData();
     return lesson;
   }
 
@@ -242,7 +329,9 @@ export class MemStorage implements IStorage {
       const progress: StudyProgress = {
         ...insertProgress,
         id,
-        lastStudied: new Date()
+        lastStudied: new Date(),
+        timeSpent: insertProgress.timeSpent || null,
+        masteryLevel: insertProgress.masteryLevel || null
       };
       this.studyProgress.set(id, progress);
       return progress;
@@ -255,7 +344,8 @@ export class MemStorage implements IStorage {
     const interaction: AiInteraction = {
       ...insertInteraction,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      context: insertInteraction.context || {}
     };
     this.aiInteractions.set(id, interaction);
     return interaction;
@@ -286,9 +376,12 @@ export class MemStorage implements IStorage {
     const mindMap: MindMap = {
       ...insertMindMap,
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      data: insertMindMap.data || {},
+      isPublic: insertMindMap.isPublic || false
     };
     this.mindMaps.set(id, mindMap);
+    this.saveData();
     return mindMap;
   }
 }

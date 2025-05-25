@@ -304,7 +304,7 @@
   }
 
   .difficulty-medium {
-    @apply text-yellow-600 bg-yellow-50 border-yellow-200;
+    @apply text-blue-800 bg-blue-100 border-blue-300;
   }
 
   .difficulty-hard {
@@ -321,7 +321,7 @@
   }
 
   .performance-needs-improvement {
-    @apply text-yellow-700 bg-yellow-100;
+    @apply text-blue-800 bg-blue-100;
   }
 
   .performance-poor {
