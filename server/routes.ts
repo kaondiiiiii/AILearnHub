@@ -253,6 +253,49 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // AI Video Generation Route
+  app.post('/api/ai/generate-video', requireAuth, async (req, res) => {
+    try {
+      const { concept } = req.body;
+      
+      if (!concept) {
+        return res.status(400).json({ error: 'Missing required field: concept' });
+      }
+      
+      // In development mode, return mock data for testing
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Returning mock video data');
+        // Add a slight delay to simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return res.status(200).json({
+          success: true,
+          videoPath: 'https://storage.googleapis.com/ailearnhub-videos/sample_math_video.mp4',
+          message: 'Development mode: Mock video generated successfully',
+          outline: {
+            title: 'Understanding ' + concept,
+            chapters: [
+              { title: 'Introduction to ' + concept, duration: '2:15' },
+              { title: 'Visual Demonstration', duration: '3:45' },
+              { title: 'Real-world Applications', duration: '2:30' }
+            ]
+          }
+        });
+      }
+      
+      // For production, we would call the actual handler
+      return res.status(500).json({ 
+        error: 'Video generation not available in production yet',
+        message: 'This feature is currently only available in development mode'
+      });
+    } catch (error) {
+      console.error('Error generating video:', error);
+      return res.status(500).json({ 
+        error: 'Failed to generate video', 
+        message: error.message || 'Unknown error' 
+      });
+    }
+  });
+
   // Lesson routes
   app.get("/api/lessons", requireAuth, async (req, res) => {
     try {

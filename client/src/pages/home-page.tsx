@@ -109,10 +109,10 @@ export default function HomePage() {
           <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <Badge variant="secondary" className="text-green-600">+5.2%</Badge>
+                <Badge variant="secondary" className="text-blue-600">+5.2%</Badge>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-1">
                 {statsLoading ? <Skeleton className="h-8 w-16" /> : dashboardStats.totalStudents || 0}
@@ -124,10 +124,10 @@ export default function HomePage() {
           <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-blue-600">
+                <div className="p-3 rounded-lg bg-gradient-to-r from-blue-400 to-blue-600">
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
-                <Badge variant="secondary" className="text-green-600">+2.1%</Badge>
+                <Badge variant="secondary" className="text-blue-600">+2.1%</Badge>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-1">
                 {statsLoading ? <Skeleton className="h-8 w-16" /> : dashboardStats.totalTeachers || 0}
@@ -139,10 +139,10 @@ export default function HomePage() {
           <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-green-600">
+                <div className="p-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400">
                   <TrendingUp className="h-6 w-6 text-white" />
                 </div>
-                <Badge variant="secondary" className="text-green-600">+12%</Badge>
+                <Badge variant="secondary" className="text-blue-600">+12%</Badge>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-1">
                 {statsLoading ? <Skeleton className="h-8 w-16" /> : `${dashboardStats.averagePerformance || 0}%`}
@@ -154,10 +154,10 @@ export default function HomePage() {
           <Card className="card-hover">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-yellow-400 to-red-500">
+                <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-800">
                   <Target className="h-6 w-6 text-white" />
                 </div>
-                <Badge variant="destructive">-3 alerts</Badge>
+                <Badge variant="destructive" className="bg-blue-100 text-blue-700 border border-blue-200">-3 alerts</Badge>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-1">
                 {statsLoading ? <Skeleton className="h-8 w-16" /> : dashboardStats.studentsNeedingAttention || 0}
@@ -175,10 +175,10 @@ export default function HomePage() {
         <Card className="card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700">
                 <Brain className="h-6 w-6 text-white" />
               </div>
-              <Badge variant="secondary" className="text-green-600">+12%</Badge>
+              <Badge variant="secondary" className="text-blue-600">+12%</Badge>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">{dashboardStats.flashcardsMastered}</h3>
             <p className="text-gray-600 text-sm">Flashcards Mastered</p>
@@ -188,10 +188,10 @@ export default function HomePage() {
         <Card className="card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-blue-600">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-blue-400 to-blue-600">
                 <Trophy className="h-6 w-6 text-white" />
               </div>
-              <Badge variant="secondary" className="text-green-600">+8%</Badge>
+              <Badge variant="secondary" className="text-blue-600">+8%</Badge>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">{dashboardStats.quizAverage}%</h3>
             <p className="text-gray-600 text-sm">Quiz Average</p>
@@ -201,10 +201,10 @@ export default function HomePage() {
         <Card className="card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-green-600">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-400">
                 <Clock className="h-6 w-6 text-white" />
               </div>
-              <Badge variant="secondary" className="text-green-600">+15%</Badge>
+              <Badge variant="secondary" className="text-blue-600">+15%</Badge>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">{dashboardStats.studyTimeToday}h</h3>
             <p className="text-gray-600 text-sm">Study Time Today</p>
@@ -214,10 +214,10 @@ export default function HomePage() {
         <Card className="card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-lg bg-gradient-to-r from-red-400 to-purple-600">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-800">
                 <Star className="h-6 w-6 text-white" />
               </div>
-              <Badge variant="secondary" className="text-purple-600">New!</Badge>
+              <Badge variant="secondary" className="text-blue-600">New!</Badge>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">Level {dashboardStats.currentLevel}</h3>
             <p className="text-gray-600 text-sm">Current Level</p>

@@ -25,7 +25,6 @@ export const GRADE_LEVELS: GradeLevel[] = [
 export const USER_ROLES: UserRole[] = [
   { id: 'student', name: 'Student', value: 'student', icon: '👨‍🎓' },
   { id: 'teacher', name: 'Teacher', value: 'teacher', icon: '👨‍🏫' },
-  { id: 'parent', name: 'Parent', value: 'parent', icon: '👨‍👩‍👧‍👦' },
   { id: 'principal', name: 'Principal', value: 'principal', icon: '👨‍💼' },
   { id: 'admin', name: 'Admin', value: 'admin', icon: '⚙️' },
 ];
@@ -73,13 +72,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: 'fas fa-robot',
     roles: ['student', 'teacher']
   },
-  {
-    id: 'tools',
-    label: 'AI Tools',
-    href: '/tools',
-    icon: 'fas fa-magic',
-    roles: ['student', 'teacher', 'parent', 'admin']
-  },
+ ,
   {
     id: 'analytics',
     label: 'Analytics',
@@ -87,13 +80,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     icon: 'fas fa-chart-line',
     roles: ['principal', 'admin']
   },
-  {
-    id: 'progress',
-    label: 'Child Progress',
-    href: '/progress',
-    icon: 'fas fa-chart-bar',
-    roles: ['parent']
-  }
+  
 ];
 
 export const EXPLANATION_LEVELS = [

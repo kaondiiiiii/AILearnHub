@@ -117,16 +117,7 @@ export default function Sidebar() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              <i className="fas fa-sign-out-alt mr-2" />
-              Sign Out
-            </Button>
+        
           </div>
         )}
 

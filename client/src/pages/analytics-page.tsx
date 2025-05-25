@@ -66,9 +66,9 @@ export default function AnalyticsPage() {
           <main className="p-6">
             <div className="max-w-2xl mx-auto text-center py-16">
               <AlertTriangle className="h-16 w-16 text-orange-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h1>
               <p className="text-gray-600">
-                Analytics are only available to principals and administrators.
+                Coming Soon
               </p>
             </div>
           </main>
@@ -529,11 +529,11 @@ export default function AnalyticsPage() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-3 p-2 rounded-lg bg-yellow-50">
-                        <Clock className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                      <div className="flex items-center space-x-3 p-2 rounded-lg bg-blue-50">
+                        <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-yellow-900">Quiz deadline approaching</p>
-                          <p className="text-yellow-600 text-xs">4 hours ago</p>
+                          <p className="font-medium text-blue-900">Quiz deadline approaching</p>
+                          <p className="text-blue-600 text-xs">4 hours ago</p>
                         </div>
                       </div>
                       
