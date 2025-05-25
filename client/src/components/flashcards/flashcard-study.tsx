@@ -172,7 +172,7 @@ export default function FlashcardStudy({ deck, cards, onBack }: FlashcardStudyPr
           )}>
             {/* Front */}
             <Card className={cn(
-              "flashcard-front absolute w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200",
+              "flashcard-front absolute w-full h-full bg-white border-2 border-blue-300",
               "flex items-center justify-center p-6 backface-hidden"
             )}>
               <CardContent className="text-center">
@@ -185,7 +185,7 @@ export default function FlashcardStudy({ deck, cards, onBack }: FlashcardStudyPr
 
             {/* Back */}
             <Card className={cn(
-              "flashcard-back absolute w-full h-full bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200",
+              "flashcard-back absolute w-full h-full bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300",
               "flex items-center justify-center p-6 backface-hidden transform rotate-y-180"
             )}>
               <CardContent className="text-center space-y-4">
@@ -214,7 +214,7 @@ export default function FlashcardStudy({ deck, cards, onBack }: FlashcardStudyPr
                       e.stopPropagation();
                       handleResponse('medium');
                     }}
-                    className="bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+                    className="bg-blue-100 border-blue-300 text-blue-800 hover:bg-blue-200"
                   >
                     <Minus className="h-4 w-4 mr-1" />
                     Medium

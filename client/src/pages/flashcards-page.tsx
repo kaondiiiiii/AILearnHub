@@ -56,7 +56,7 @@ export default function FlashcardsPage() {
 
   const getDifficultyColor = (masteryPercentage: number) => {
     if (masteryPercentage >= 80) return 'text-green-600 bg-green-50 border-green-200';
-    if (masteryPercentage >= 60) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (masteryPercentage >= 60) return 'text-blue-800 bg-blue-100 border-blue-300';
     return 'text-red-600 bg-red-50 border-red-200';
   };
 
@@ -292,10 +292,7 @@ export default function FlashcardsPage() {
                                   <Play className="h-4 w-4 mr-2" />
                                   Study Now
                                 </Button>
-                                <Button variant="outline" className="w-full">
-                                  <BarChart3 className="h-4 w-4 mr-2" />
-                                  View Stats
-                                </Button>
+
                               </div>
                             </CardContent>
                           </Card>

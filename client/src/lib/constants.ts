@@ -112,7 +112,7 @@ export const LEARNING_STYLES = [
 
 export const DIFFICULTY_LEVELS = [
   { id: 'easy', name: 'Easy', color: 'text-green-600 bg-green-50 border-green-200' },
-  { id: 'medium', name: 'Medium', color: 'text-yellow-600 bg-yellow-50 border-yellow-200' },
+  { id: 'medium', name: 'Medium', color: 'text-blue-800 bg-blue-100 border-blue-300' },
   { id: 'hard', name: 'Hard', color: 'text-red-600 bg-red-50 border-red-200' },
 ];
 
