@@ -145,9 +145,12 @@ export function createFallbackMindMap(topic: string): any {
  * Creates fallback quiz questions when the API fails
  * 
  * @param topic The original topic for the quiz
+ * @param subject The subject of the quiz
+ * @param numberOfQuestions Number of questions to generate
+ * @param questionTypes Types of questions to include
  * @returns A gamified array of quiz questions with difficulty levels, time limits, and point values
  */
-export function createFallbackQuiz(topic: string): any[] {
+export function createFallbackQuiz(topic: string, subject: string = 'General Knowledge', numberOfQuestions: number = 4, questionTypes: string[] = ['multiple-choice', 'true-false']): any[] {
   return [
     {
       type: "multiple-choice",
@@ -197,10 +200,12 @@ export function createFallbackQuiz(topic: string): any[] {
 /**
  * Creates fallback flashcards when the API fails
  * 
+ * @param content The content to create flashcards from
  * @param subject The subject for the flashcards
+ * @param numberOfCards Number of flashcards to generate
  * @returns A simple array of flashcards
  */
-export function createFallbackFlashcards(subject: string): any[] {
+export function createFallbackFlashcards(content: string, subject: string, numberOfCards: number = 5): any[] {
   return [
     {
       question: `What is ${subject}?`,

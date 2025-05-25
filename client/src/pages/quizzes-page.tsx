@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+// ReactMarkdown no longer needed since we're not rendering analysis
 
 // Constants
 const SUBJECTS = [
@@ -70,6 +72,10 @@ export default function QuizzesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // State for tracking user answers and quiz taking
+  const [userAnswers, setUserAnswers] = useState<{[key: number]: string}>({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  
   // State for active tab
   const [activeTab, setActiveTab] = useState("take");
   
@@ -87,23 +93,56 @@ export default function QuizzesPage() {
     includeImages: true
   });
   
+  // State for generated quiz
+  const [generatedQuiz, setGeneratedQuiz] = useState<any>(null);
+
   // Generate quiz mutation
   const generateQuizMutation = useMutation({
     mutationFn: async (data: typeof createForm) => {
       const response = await apiRequest('POST', '/api/ai/generate-quiz', data);
-      return response;
+      return response.json();
     },
     onSuccess: (data: any) => {
+      console.log('Generated quiz data:', data);
+      setGeneratedQuiz(data);
       toast({
         title: "Quiz Generated",
-        description: "Quiz generated successfully.",
+        description: `Successfully generated ${data.questions?.length || 0} quiz questions.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+      
+      // Save the quiz to the database
+      const quizData = {
+        title: `${createForm.topic} Quiz`,
+        subject: createForm.subject,
+        grade: createForm.gradeLevel,
+        description: `AI-generated quiz about ${createForm.topic} for ${createForm.subject}`,
+        questions: data.questions || [],
+        timeLimit: createForm.timeLimit,
+      };
+      
+      // Save the quiz
+      apiRequest('POST', '/api/quizzes', quizData)
+        .then(() => {
+          toast({
+            title: "Quiz Saved",
+            description: "Quiz has been saved to your library.",
+          });
+          queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+        })
+        .catch(err => {
+          console.error('Error saving quiz:', err);
+          toast({
+            title: "Save Error",
+            description: "Quiz was generated but couldn't be saved. Please try again.",
+            variant: "destructive",
+          });
+        });
     },
     onError: (error: any) => {
+      console.error('Quiz generation error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate quiz.",
+        description: error.message || "Failed to generate quiz. Please try again.",
         variant: "destructive",
       });
     },
@@ -131,23 +170,19 @@ export default function QuizzesPage() {
           <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold">Quizzes</h1>
-              {user?.role === 'teacher' && (
-                <Button 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setActiveTab("create")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Quiz
-                </Button>
-              )}
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setActiveTab("create")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Quiz
+              </Button>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList>
                 <TabsTrigger value="take">Take Quiz</TabsTrigger>
-                {user?.role === 'teacher' && (
-                  <TabsTrigger value="create">Create Quiz</TabsTrigger>
-                )}
+                <TabsTrigger value="create">Create Quiz</TabsTrigger>
                 <TabsTrigger value="results">My Results</TabsTrigger>
               </TabsList>
               
@@ -159,8 +194,7 @@ export default function QuizzesPage() {
               </TabsContent>
               
               {/* Create Quiz Tab Content */}
-              {user?.role === 'teacher' && (
-                <TabsContent value="create" className="space-y-6">
+              <TabsContent value="create" className="space-y-6">
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -349,6 +383,170 @@ export default function QuizzesPage() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+              
+              {/* Display Generated Quiz */}
+              {generatedQuiz && generatedQuiz.questions && generatedQuiz.questions.length > 0 && (
+                <Card className="mt-6 border-black">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Generated Quiz: {createForm.topic}</CardTitle>
+                      <Badge>{generatedQuiz.questions.length} Questions</Badge>
+                    </div>
+                    <CardDescription>Subject: {createForm.subject} | Grade Level: {createForm.gradeLevel}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {generatedQuiz.questions.map((question: any, index: number) => (
+                      <Card key={index} className="border-black">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <Badge className={`${question.difficulty === 'easy' ? 'bg-green-100 text-green-800' : 
+                              question.difficulty === 'medium' ? 'bg-blue-100 text-blue-800' : 
+                              'bg-red-100 text-red-800'} border-black`}>
+                              {question.difficulty || 'medium'} • {question.points || 10} points
+                            </Badge>
+                            <Badge variant="outline" className="border-black">
+                              {question.timeLimit || 30}s
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <p className="font-medium text-lg mb-2">Question {index + 1}: {question.question}</p>
+                              
+                              {question.type === 'multiple-choice' && question.options && (
+                                <div className="grid grid-cols-1 gap-2 mt-2">
+                                  {question.options.map((option: string, optIndex: number) => (
+                                    <div 
+                                      key={optIndex} 
+                                      className={`flex items-center space-x-2 p-2 rounded-md border border-black hover:bg-gray-50 cursor-pointer
+                                        ${userAnswers[index] === option ? 'bg-blue-100' : ''}
+                                        ${quizSubmitted && userAnswers[index] === option && option === question.correctAnswer ? 'bg-green-100' : ''}
+                                        ${quizSubmitted && userAnswers[index] === option && option !== question.correctAnswer ? 'bg-red-100' : ''}
+                                      `}
+                                      onClick={() => !quizSubmitted && setUserAnswers({...userAnswers, [index]: option})}
+                                    >
+                                      <div className={`w-6 h-6 flex items-center justify-center rounded-full border border-black ${userAnswers[index] === option ? 'bg-blue-500 text-white' : 'bg-white'}`}>
+                                        {String.fromCharCode(65 + optIndex)}
+                                      </div>
+                                      <span>{option}</span>
+                                      {quizSubmitted && option === question.correctAnswer && (
+                                        <Badge className="ml-auto bg-green-100 text-green-800 border-black">Correct</Badge>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {question.type === 'true-false' && (
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <div 
+                                    className={`p-2 rounded-md border border-black hover:bg-gray-50 flex items-center cursor-pointer
+                                      ${userAnswers[index] === 'True' ? 'bg-blue-100' : ''}
+                                      ${quizSubmitted && userAnswers[index] === 'True' && question.correctAnswer === 'True' ? 'bg-green-100' : ''}
+                                      ${quizSubmitted && userAnswers[index] === 'True' && question.correctAnswer !== 'True' ? 'bg-red-100' : ''}
+                                    `}
+                                    onClick={() => !quizSubmitted && setUserAnswers({...userAnswers, [index]: 'True'})}
+                                  >
+                                    <span>True</span>
+                                    {quizSubmitted && question.correctAnswer === 'True' && (
+                                      <Badge className="ml-auto bg-green-100 text-green-800 border-black">Correct</Badge>
+                                    )}
+                                  </div>
+                                  <div 
+                                    className={`p-2 rounded-md border border-black hover:bg-gray-50 flex items-center cursor-pointer
+                                      ${userAnswers[index] === 'False' ? 'bg-blue-100' : ''}
+                                      ${quizSubmitted && userAnswers[index] === 'False' && question.correctAnswer === 'False' ? 'bg-green-100' : ''}
+                                      ${quizSubmitted && userAnswers[index] === 'False' && question.correctAnswer !== 'False' ? 'bg-red-100' : ''}
+                                    `}
+                                    onClick={() => !quizSubmitted && setUserAnswers({...userAnswers, [index]: 'False'})}
+                                  >
+                                    <span>False</span>
+                                    {quizSubmitted && question.correctAnswer === 'False' && (
+                                      <Badge className="ml-auto bg-green-100 text-green-800 border-black">Correct</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {question.type === 'short-answer' && (
+                                <div className="mt-2 space-y-2">
+                                  <Input
+                                    placeholder="Type your answer here"
+                                    value={userAnswers[index] || ''}
+                                    onChange={(e) => !quizSubmitted && setUserAnswers({...userAnswers, [index]: e.target.value})}
+                                    disabled={quizSubmitted}
+                                    className="border-black"
+                                  />
+                                  {quizSubmitted && (
+                                    <div className="p-3 bg-gray-50 rounded-md border border-black">
+                                      <p className="font-medium">Correct Answer: {question.correctAnswer}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {quizSubmitted && question.showExplanation && (
+                              <div className="p-3 bg-blue-50 rounded-md border border-black">
+                                <p className="font-medium">Explanation:</p>
+                                <p>{question.explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    
+                    <div className="flex justify-between">
+                      {!quizSubmitted ? (
+                        <Button 
+                          onClick={() => setQuizSubmitted(true)} 
+                          className="bg-blue-600 hover:bg-blue-700 border-black"
+                          disabled={Object.keys(userAnswers).length < generatedQuiz.questions.length}
+                        >
+                          Submit Quiz
+                        </Button>
+                      ) : (
+                        <div className="space-y-4 w-full">
+                          <div className="flex justify-between">
+                            <Button 
+                              onClick={() => {
+                                setQuizSubmitted(false);
+                                setUserAnswers({});
+                              }} 
+                              variant="outline"
+                              className="border-black"
+                            >
+                              Retake Quiz
+                            </Button>
+                            
+                            <Button 
+                              onClick={() => {
+                                // Toggle explanation visibility for all questions
+                                const updatedQuestions = generatedQuiz.questions.map((q: any) => ({
+                                  ...q,
+                                  showExplanation: true
+                                }));
+                                
+                                // Update the quiz with visible explanations
+                                setGeneratedQuiz({
+                                  ...generatedQuiz,
+                                  questions: updatedQuestions
+                                });
+                              }} 
+                              className="bg-purple-600 hover:bg-purple-700 border-black"
+                            >
+                              <Sparkles className="h-5 w-5 mr-2" />
+                              AI Analysis
+                            </Button>
+                          </div>
+                          
+                          {/* Explanations are now shown directly in each question when AI Analysis button is clicked */}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
               
               {/* Results Tab Content */}

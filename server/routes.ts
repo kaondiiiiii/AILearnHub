@@ -231,133 +231,25 @@ export function registerRoutes(app: Express): Server {
   });
 
   // AI Quiz Analysis Route
-  app.post('/api/ai/analyze-quiz-results', async (req, res) => {
+  app.post('/api/ai/analyze-quiz-results', requireAuth, async (req, res) => {
     try {
-      const { quizId, answers } = req.body;
+      const { topic, subject, questions, userAnswers, score } = req.body;
       
-      if (!quizId || !answers) {
-        return res.status(400).json({ error: 'Missing required fields: quizId or answers' });
+      if (!topic || !subject || !questions || !userAnswers || !score) {
+        return res.status(400).json({ error: 'Missing required fields' });
       }
-
-      // Ensure user is authenticated
-      if (!req.user) {
-        return res.status(401).json({ error: 'User not authenticated' });
-      }
-
-      // Get the quiz
-      const quiz = await storage.getQuiz(quizId);
-      if (!quiz) {
-        return res.status(404).json({ error: 'Quiz not found' });
-      }
-
-      // Map answers to questions with correctness
-      const questionsWithAnswers = (quiz.questions || []).map((question, index) => {
-        const userAnswer = answers[index];
-        const correctAnswer = question.answer;
-        const isCorrect = userAnswer?.toLowerCase() === correctAnswer?.toLowerCase();
-        
-        return {
-          question: question.question,
-          userAnswer,
-          correctAnswer,
-          isCorrect,
-          explanation: question.explanation,
-          difficulty: question.difficulty || 'medium',
-          topic: quiz.subject
-        };
-      });
-
-      // Calculate statistics
-      const totalQuestions = questionsWithAnswers.length;
-      const correctAnswers = questionsWithAnswers.filter(q => q.isCorrect).length;
-      const incorrectAnswers = totalQuestions - correctAnswers;
-      const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-
-      // Group questions by difficulty
-      const byDifficulty = {
-        easy: questionsWithAnswers?.filter(q => q.difficulty === 'easy') || [],
-        medium: questionsWithAnswers?.filter(q => q.difficulty === 'medium') || [],
-        hard: questionsWithAnswers?.filter(q => q.difficulty === 'hard') || []
-      };
-
-      // Calculate performance by difficulty
-      const performanceByDifficulty = {
-        easy: byDifficulty.easy.length > 0 ? 
-          Math.round((byDifficulty.easy.filter(q => q.isCorrect).length / byDifficulty.easy.length) * 100) : 0,
-        medium: byDifficulty.medium.length > 0 ? 
-          Math.round((byDifficulty.medium.filter(q => q.isCorrect).length / byDifficulty.medium.length) * 100) : 0,
-        hard: byDifficulty.hard.length > 0 ? 
-          Math.round((byDifficulty.hard.filter(q => q.isCorrect).length / byDifficulty.hard.length) * 100) : 0
-      };
-
-      // Create a prompt for AI analysis
-      const prompt = `
-        Analyze this quiz performance for a student studying ${quiz.subject} at ${quiz.grade} level:
-        
-        Quiz Topic: ${quiz.title || quiz.subject}
-        Total Questions: ${totalQuestions}
-        Correct Answers: ${correctAnswers}
-        Incorrect Answers: ${incorrectAnswers}
-        Overall Score: ${score}%
-        
-        Performance by Difficulty:
-        - Easy questions: ${performanceByDifficulty.easy}%
-        - Medium questions: ${performanceByDifficulty.medium}%
-        - Hard questions: ${performanceByDifficulty.hard}%
-        
-        Questions the student got wrong:
-        ${questionsWithAnswers?.filter(q => !q.isCorrect).map(q => 
-          `- Question: ${q.question}\n  Student's answer: ${q.userAnswer}\n  Correct answer: ${q.correctAnswer}`
-        ).join('\n\n')}
-        
-        Based on this performance, provide:
-        1. A personalized analysis of the student's strengths and weaknesses in this subject area
-        2. Specific concepts they should focus on studying more
-        3. Learning strategies tailored to help them improve in their weak areas
-        4. Encouragement and positive reinforcement for their efforts
-        
-        Format your response in clear paragraphs that are encouraging and educational. Keep the total response under 500 words.
-      `;
-
-      // Use OpenAI API with gpt-4o model for analysis
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are an educational analytics assistant. Provide personalized, encouraging analysis of quiz results."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
-      });
       
-      const analysis = response.choices[0].message.content || `
-        Based on your quiz performance, you've demonstrated a good understanding of ${quiz.subject} concepts overall, scoring ${score}%. 
-        
-        **Strengths:**
-        You performed particularly well on ${performanceByDifficulty.easy > performanceByDifficulty.medium ? 'easier' : 'medium-difficulty'} questions, showing solid grasp of fundamental concepts. 
-        
-        **Areas for Improvement:**
-        The questions you missed suggest you might benefit from focusing more on fundamental concepts.
-        
-        **Study Recommendations:**
-        1. Review the specific concepts from the questions you missed
-        2. Practice with similar problems to reinforce understanding
-        3. Consider creating flashcards for key terms and concepts
-        
-        Keep up the good work! Your score shows you're making progress, and with targeted practice, you'll continue to improve your understanding of ${quiz.subject}.
-      `;
+      // Import the analyze quiz results handler
+      const handleAnalyzeQuizResults = require('./api/ai/analyze-quiz-results').default;
       
-      return res.json({ analysis });
-      
+      // Call the handler
+      return handleAnalyzeQuizResults(req, res);
     } catch (error) {
       console.error('Error analyzing quiz results:', error);
-      return res.status(500).json({ error: 'Failed to analyze quiz results' });
+      return res.status(500).json({ 
+        error: 'Failed to analyze quiz results', 
+        message: error.message || 'Unknown error' 
+      });
     }
   });
 
