@@ -23,15 +23,15 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
-  // Create a dummy user that's always authenticated with teacher role
+  // Create a dummy user that's always authenticated with student role
   const dummyUser = {
     id: 1,
-    username: "demouser",
-    email: "demo@example.com",
-    firstName: "Demo",
+    username: "demostudent",
+    email: "student@example.com",
+    firstName: "Student",
     lastName: "User",
-    grade: null,
-    role: "teacher", // Set to teacher role
+    grade: "10th Grade",
+    role: "student", // Set to student role
     password: "dummypassword", // Adding password to satisfy the type requirements
     subjects: ["Mathematics", "Science", "English", "History"],
     createdAt: new Date()

@@ -147,11 +147,11 @@ export interface MindMapNode {
 // Generate flashcards from content
 export async function generateFlashcards(request: FlashcardGenerationRequest): Promise<FlashcardData[]> {
   // Validate inputs before making API call
-  const content = validateAndTrimPrompt(request.content);
+  const contentText = validateAndTrimPrompt(request.content);
   const subject = validateAndTrimPrompt(request.subject);
   const gradeLevel = validateAndTrimPrompt(request.gradeLevel);
   
-  if (!content) {
+  if (!contentText) {
     console.error('Missing content for flashcard generation');
     throw new Error('Please enter content for the flashcards');
   }
@@ -165,9 +165,9 @@ export async function generateFlashcards(request: FlashcardGenerationRequest): P
   const numberOfCards = Math.max(1, Math.min(20, request.numberOfCards || 5));
   
   try {
-    const prompt = `Create ${numberOfCards} educational flashcards for ${subject} at ${gradeLevel} level from the following content:
+    const promptText = `Create ${numberOfCards} educational flashcards for ${subject} at ${gradeLevel} level from the following content:
 
-${content}
+${contentText}
 
 Generate flashcards that:
 - Test key concepts and facts
@@ -186,30 +186,58 @@ Return the flashcards as a JSON array with this format:
   ]
 }`;
 
-    const response = await openai.chat.completions.create({
-      model: DEFAULT_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert educational content creator specializing in creating effective flashcards for learning."
-        },
-        {
-          role: "user",
-          content: prompt
+    // Try with retries for rate limiting
+    let retryCount = 0;
+    const maxRetries = 2;
+    let apiResponse: any = null;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        apiResponse = await openai.chat.completions.create({
+          model: DEFAULT_MODEL,
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert educational content creator specializing in creating effective flashcards for learning."
+            },
+            {
+              role: "user",
+              content: promptText
+            }
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        });
+        break; // If successful, exit the retry loop
+      } catch (apiError: any) {
+        retryCount++;
+        if (apiError.response?.status === 429) {
+          // Rate limit error - wait and retry
+          console.log(`Rate limit hit, retrying (${retryCount}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Exponential backoff
+        } else if (retryCount >= maxRetries) {
+          // If we've exhausted retries or it's not a rate limit error, rethrow
+          throw apiError;
+        } else {
+          // For other errors, wait a bit and retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" }
-    });
+      }
+    }
+
+    // If we get here without a response, it means all retries failed
+    if (!apiResponse) {
+      throw new Error('Failed to get response from OpenAI after retries');
+    }
 
     // Extract and parse the response content
-    const content = response.choices[0].message.content;
-    if (!content) {
+    const responseContent = apiResponse.choices[0].message.content;
+    if (!responseContent) {
       throw new Error('Empty response from OpenAI');
     }
     
     try {
-      const parsedResponse = JSON.parse(content);
+      const parsedResponse = JSON.parse(responseContent);
       if (!parsedResponse.flashcards || !Array.isArray(parsedResponse.flashcards)) {
         throw new Error('Invalid response format');
       }
@@ -237,8 +265,17 @@ Return the flashcards as a JSON array with this format:
   } catch (error: any) {
     console.error('Error generating flashcards:', error.response?.data || error.message);
     
+    // Handle different types of errors
+    if (error.response?.status === 429) {
+      console.log('Rate limit exceeded, using fallback flashcards');
+    } else if (error.response?.status === 401) {
+      console.error('Authentication error with OpenAI API key');
+    } else if (error.response?.status >= 500 && error.response?.status < 600) {
+      console.log('OpenAI server error, using fallback flashcards');
+    }
+    
     // Return fallback content if available
-    return createFallbackFlashcards(content, subject, numberOfCards);
+    return createFallbackFlashcards(contentText, subject, numberOfCards);
   }
 }
 
@@ -302,21 +339,49 @@ Return the questions as a JSON array with this format:
   ]
 }`;
 
-    const response = await openai.chat.completions.create({
-      model: DEFAULT_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert educational content creator specializing in creating engaging, accurate quiz questions tailored to specific educational needs."
-        },
-        {
-          role: "user",
-          content: prompt
+    // Try with retries for rate limiting
+    let retryCount = 0;
+    const maxRetries = 2;
+    let response;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        response = await openai.chat.completions.create({
+          model: DEFAULT_MODEL,
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert educational content creator specializing in creating engaging, accurate quiz questions tailored to specific educational needs."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        });
+        break; // If successful, exit the retry loop
+      } catch (apiError: any) {
+        retryCount++;
+        if (apiError.response?.status === 429) {
+          // Rate limit error - wait and retry
+          console.log(`Rate limit hit, retrying (${retryCount}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Exponential backoff
+        } else if (retryCount >= maxRetries) {
+          // If we've exhausted retries or it's not a rate limit error, rethrow
+          throw apiError;
+        } else {
+          // For other errors, wait a bit and retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-      ],
-      temperature: 0.7,
-      response_format: { type: "json_object" }
-    });
+      }
+    }
+
+    // If we get here without a response, it means all retries failed
+    if (!response) {
+      throw new Error('Failed to get response from OpenAI after retries');
+    }
 
     // Extract and parse the response content
     const content = response.choices[0].message.content;
@@ -371,39 +436,15 @@ Return the questions as a JSON array with this format:
     
     // Handle different types of errors
     if (error.response?.status === 429) {
-      throw new Error('Rate limit exceeded. Please try again later.');
+      console.log('Rate limit exceeded, using fallback quiz');
     } else if (error.response?.status === 401) {
-      throw new Error('Authentication error. Please check your OpenAI API key.');
+      console.error('Authentication error with OpenAI API key');
     } else if (error.response?.status >= 500 && error.response?.status < 600) {
       console.log('Server error detected, falling back to local generation');
     }
     
     // Return fallback quiz questions
     return createFallbackQuiz(topic, subject, numberOfQuestions, validQuestionTypes);
-            },
-            {
-              role: "user",
-              content: `Create ${numberOfQuestions} simple quiz questions about ${topic} for ${subject} students.`
-            }
-          ],
-          temperature: 0.5,
-          response_format: { type: "json_object" }
-        });
-        
-        const retryContent = retryResponse.choices[0].message.content;
-        if (retryContent) {
-          const retryParsed = JSON.parse(retryContent);
-          if (retryParsed.questions && Array.isArray(retryParsed.questions)) {
-            return retryParsed.questions as QuizQuestion[];
-          }
-        }
-      }
-    } catch (retryError) {
-      console.error('Retry attempt failed:', retryError);
-    }
-    
-    // Return fallback content if all else fails
-    return createFallbackQuiz(topic, subject, numberOfQuestions);
   }
 }
 
@@ -685,7 +726,7 @@ Return the mind map as a JSON object with this format:
     console.error('Error generating mind map:', error.response?.data || error.message);
     
     // Return fallback content if available
-    return createFallbackMindMap(topic);
+    return createFallbackMindMap(topic || 'Learning Topic');
   }
 }
 
@@ -767,7 +808,8 @@ export async function generateTutorResponse(
 ): Promise<string> {
   // Validate inputs before making API call
   const sanitizedMessage = validateAndTrimPrompt(message);
-  const sanitizedUserLevel = validateAndTrimPrompt(userLevel) || "middle school";
+  // Ensure userLevel is a string before passing to validateAndTrimPrompt
+  const sanitizedUserLevel = validateAndTrimPrompt(userLevel || "middle school");
   
   if (!sanitizedMessage) {
     console.error('Missing message for tutor response');
