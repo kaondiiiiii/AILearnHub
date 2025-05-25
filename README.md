@@ -29,3 +29,10 @@
 
 - **📚 Ndërtues i Planit Mësimor me AI**  
   Mësuesi përshkruan një temë — AI gjeneron objektivat, strukturën e mësimit, aktivitetet dhe vlerësimet.
+
+![Screenshot](https://github.com/kaondiiiiii/AILearnHub/blob/main/Image%2025.5.25%20at%2014.01.jpeg?raw=true)
+![Screenshot](https://github.com/kaondiiiiii/AILearnHub/blob/main/Image%2025.5.25%20at%2017.48.jpeg?raw=true)
+![Screenshot](https://github.com/kaondiiiiii/AILearnHub/blob/main/Image%2025.5.25%20at%2017.40.jpeg?raw=true)
+![Screenshot](https://github.com/kaondiiiiii/AILearnHub/blob/main/Image%2025.5.25%20at%2015.24.jpeg?raw=true)
+![Screenshot](https://github.com/kaondiiiiii/AILearnHub/blob/main/Image%2025.5.25%20at%2014.01.jpeg?raw=true)
+
